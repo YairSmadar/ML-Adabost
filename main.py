@@ -54,10 +54,10 @@ class H:
         self.at = at
         self.r = r
 
-    def sing(self, p):
+    def sing(self, p, numOfRolls: int):
         sum = 0
 
-        for i in range(self.r):
+        for i in range(numOfRolls):
             is_left = isLeft(self.ht[i].low, self.ht[i].high, p)
             if (self.ht[i].side == all_left_is_red and is_left) \
                     or (self.ht[i].side == all_left_is_blue and not is_left):
@@ -70,8 +70,8 @@ class H:
         else:
             return blue
 
-    def is_right(self, p: Point):
-        if self.sing(p) == p.color:
+    def is_right(self, p: Point, numOfRolls: int):
+        if self.sing(p, numOfRolls) == p.color:
             return True
         else:
             return False
@@ -132,7 +132,6 @@ def adaboost(learn, numOfRules):
     for p in learn:
         p.weight = w
 
-    at = 0.5
     Hs = []
     As = []
     for i in range(numOfRules):
@@ -171,42 +170,50 @@ def run(points: list, numOfLines: int, times: int):
     :return: run adaboost for each i from(1,r) (times) times with the shape
     """
     start = datetime.datetime.now()
-    multi_sum_test_arr = []
-    multi_sum_train_arr = []
-    for i in range(1, numOfLines + 1):  # 1-8
-        start_iter_1_8 = datetime.datetime.now()
-        multi_sum_test = 0
-        multi_sum_train = 0
-        for j in range(times):  # 0 - 99
-            shuffle(points)  # mix all the point
-            train = points[:75]  # 50% train
-            test = points[75:]  # 50% test
+    multi_sum_test_arr = [0]*numOfLines
+    multi_sum_train_arr = [0]*numOfLines
 
-            ans = adaboost(train, i)
+    for j in range(1, times + 1):  # 1 - 100
+        start_iter_1_100 = datetime.datetime.now()
+        shuffle(points)  # mix all the point
+        train = points[:75]  # 50% train
+        test = points[75:]  # 50% test
 
+        ans = adaboost(train, numOfLines)
+
+        # in order co compute AVG
+        for i in range(len(ans.ht)):
             rate_test = 0
             rate_train = 0
             for p in test:
-                if ans.is_right(p):
+                if ans.is_right(p, i + 1):
                     rate_test += 1
-            multi_sum_test += (rate_test / len(test) * 100)
+            multi_sum_test_arr[i] += (rate_test / len(test) * 100)
 
             for p in train:
-                if ans.is_right(p):
+                if ans.is_right(p, i + 1):
                     rate_train += 1
-            multi_sum_train += (rate_train / len(train) * 100)
-        multi_sum_test /= times
-        multi_sum_train /= times
-        multi_sum_test_arr.append(multi_sum_test)
-        multi_sum_train_arr.append(multi_sum_train)
-        end_iter_1_8 = datetime.datetime.now()
-        print("Total time for {} points is: {}".format(i, end_iter_1_8 - start_iter_1_8))
+            multi_sum_train_arr[i] += (rate_train / len(train) * 100)
+
+        end_iter_1_100 = datetime.datetime.now()
+        print("Total time for {} points is: {}".format(j, end_iter_1_100 - start_iter_1_100))
+        tempTest = multi_sum_test_arr.copy()
+        tempTrain = multi_sum_train_arr.copy()
+        for i in range(numOfLines):
+            tempTest[i] /= j
+            tempTrain[i] /= j
+        print("multi_sum_test_arr: {}".format(tempTest))
+        print("multi_sum_train_arr: {}".format(tempTrain))
+
+    for i in range(len(multi_sum_train_arr)):
+        multi_sum_test_arr[i] /= times
+        multi_sum_train_arr[i] /= times
 
     end = datetime.datetime.now()
-    for i in range(len(multi_sum_train_arr)):
+    for i in range(1, len(multi_sum_train_arr) + 1):
         print("the train rate of success for {} is {} percent ".format(i, multi_sum_train_arr[i]))
     print("---------------------------------------------------")
-    for i in range(len(multi_sum_test_arr)):
+    for i in range(1, len(multi_sum_test_arr) + 1):
         print("the test rate of success for {} is {} percent ".format(i, multi_sum_test_arr[i]))
 
     print("Total time for {} points and {} times, from 1 to {} is :{}".format(len(points), times, numOfLines,
