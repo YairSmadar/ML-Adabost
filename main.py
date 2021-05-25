@@ -54,10 +54,10 @@ class H:
         self.at = at
         self.r = r
 
-    def sing(self, p, numOfRolls: int):
+    def sing(self, p, numOfRules: int):
         sum = 0
 
-        for i in range(numOfRolls):
+        for i in range(numOfRules):
             is_left = isLeft(self.ht[i].low, self.ht[i].high, p)
             if (self.ht[i].side == all_left_is_red and is_left) \
                     or (self.ht[i].side == all_left_is_blue and not is_left):
@@ -70,8 +70,8 @@ class H:
         else:
             return blue
 
-    def is_right(self, p: Point, numOfRolls: int):
-        if self.sing(p, numOfRolls) == p.color:
+    def is_right(self, p: Point, numOfRules: int):
+        if self.sing(p, numOfRules) == p.color:
             return True
         else:
             return False
@@ -174,7 +174,7 @@ def run(points: list, numOfLines: int, times: int):
     multi_sum_train_arr = [0]*numOfLines
 
     for j in range(1, times + 1):  # 1 - 100
-        start_iter_1_100 = datetime.datetime.now()
+        # start_iter_1_100 = datetime.datetime.now() # for debug
         shuffle(points)  # mix all the point
         train = points[:75]  # 50% train
         test = points[75:]  # 50% test
@@ -195,26 +195,27 @@ def run(points: list, numOfLines: int, times: int):
                     rate_train += 1
             multi_sum_train_arr[i] += (rate_train / len(train) * 100)
 
-        end_iter_1_100 = datetime.datetime.now()
-        print("Total time for {} points is: {}".format(j, end_iter_1_100 - start_iter_1_100))
-        tempTest = multi_sum_test_arr.copy()
-        tempTrain = multi_sum_train_arr.copy()
-        for i in range(numOfLines):
-            tempTest[i] /= j
-            tempTrain[i] /= j
-        print("multi_sum_test_arr: {}".format(tempTest))
-        print("multi_sum_train_arr: {}".format(tempTrain))
+        # --- for debug ---
+        # end_iter_1_100 = datetime.datetime.now()
+        # print("Total time for {} points is: {}".format(j, end_iter_1_100 - start_iter_1_100))
+        # tempTest = multi_sum_test_arr.copy()
+        # tempTrain = multi_sum_train_arr.copy()
+        # for i in range(numOfLines):
+        #     tempTest[i] /= j
+        #     tempTrain[i] /= j
+        # print("multi_sum_test_arr: {}".format(tempTest))
+        # print("multi_sum_train_arr: {}".format(tempTrain))
 
     for i in range(len(multi_sum_train_arr)):
         multi_sum_test_arr[i] /= times
         multi_sum_train_arr[i] /= times
 
     end = datetime.datetime.now()
-    for i in range(1, len(multi_sum_train_arr) + 1):
-        print("the train rate of success for {} is {} percent ".format(i, multi_sum_train_arr[i]))
+    for i in range(len(multi_sum_train_arr) ):
+        print("the train rate of success for {} is {} percent ".format(i + 1, multi_sum_train_arr[i]))
     print("---------------------------------------------------")
-    for i in range(1, len(multi_sum_test_arr) + 1):
-        print("the test rate of success for {} is {} percent ".format(i, multi_sum_test_arr[i]))
+    for i in range(len(multi_sum_test_arr)):
+        print("the test rate of success for {} is {} percent ".format(i + 1, multi_sum_test_arr[i]))
 
     print("Total time for {} points and {} times, from 1 to {} is :{}".format(len(points), times, numOfLines,
                                                                               end - start))
